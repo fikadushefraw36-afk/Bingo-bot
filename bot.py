@@ -146,14 +146,12 @@ async def buycards(update: Update, context):
         await update.message.reply_text("🔴 ጨዋታው ተጠናቋል! /newgame ይጠቀሙ")
         return
     
-    # ስንት ካርድ እንደሚፈለግ መወሰን
     num_cards = 1
     if args and args[0].isdigit():
-        num_cards = min(int(args[0]), 10)  # ከፍተኛ 10 ካርድ
+        num_cards = min(int(args[0]), 10)
     
-    total_cost = num_cards * 10  # 1 ካርድ = 10 ብር
+    total_cost = num_cards * 10
     
-    # ገንዘብ መኖሩን ማረጋገጥ
     if bank.get_balance(user_id) < total_cost:
         await update.message.reply_text(
             f"❌ *በቂ ገንዘብ የለም!*\n\n"
@@ -165,10 +163,8 @@ async def buycards(update: Update, context):
         )
         return
     
-    # ገንዘብ መቀነስ
     bank.withdraw(user_id, total_cost, f"BUY_{num_cards}_CARDS")
     
-    # ካርዶችን መግዛት
     game = games[chat_id]
     success, bought = game.add_player(user_id, update.effective_user.username, num_cards)
     
@@ -182,7 +178,6 @@ async def buycards(update: Update, context):
             parse_mode='Markdown'
         )
     else:
-        # ካልተሳካ ገንዘቡን መመለስ
         bank.deposit(user_id, total_cost, "REFUND")
         await update.message.reply_text("🔴 ካርድ መግዛት አልተቻለም! እባክዎ እንደገና ይሞክሩ")
 
@@ -228,9 +223,8 @@ async def call(update: Update, context):
         if winner_info:
             winner_id, num_cards = winner_info
             winner_name = game.players[winner_id]['username']
-            prize = 200  # ሽልማት 200 ብር
+            prize = 200
             
-            # ሽልማት መስጠት
             bank.add_winnings(winner_id, prize)
             
             msg += f"\n\n🎉 *ቢንጎ!* 🎉\n"
@@ -238,7 +232,6 @@ async def call(update: Update, context):
             msg += f"🃟 በ{num_cards} ካርድ(ዎች) አሸንፏል!\n"
             msg += f"💰 ሽልማት: *{prize} ብር*"
             
-            # ጨዋታውን መዝጋት
             game.active = False
         
         await update.message.reply_text(msg, parse_mode='Markdown')
@@ -329,29 +322,30 @@ def main():
     """ቦቱን ማስነሳት"""
     print("🔴 ቢንጎ ቦት እየተነሳ ነው...")
     
-    # አፕሊኬሽኑን መፍጠር
-    app = Application.builder().token(BOT_TOKEN).build()
-    
-    # ትዕዛዞችን መመዝገብ
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("balance", balance))
-    app.add_handler(CommandHandler("deposit", deposit))
-    app.add_handler(CommandHandler("withdraw", withdraw))
-    app.add_handler(CommandHandler("newgame", newgame))
-    app.add_handler(CommandHandler("buycards", buycards))
-    app.add_handler(CommandHandler("cards", cards))
-    app.add_handler(CommandHandler("call", call))
-    app.add_handler(CommandHandler("leaderboard", leaderboard))
-    app.add_handler(CommandHandler("history", history))
-    app.add_handler(CommandHandler("stats", stats))
-    app.add_handler(CommandHandler("summary", summary))
-    app.add_handler(CallbackQueryHandler(join_game, pattern='join'))
-    
-    print("🔴 ቢንጎ ቦት ተጀምሯል! 🎲")
-    print("✅ Bot is polling for updates...")
-    
-    # ቦቱን ማስኬድ
-    app.run_polling()
+    try:
+        app = Application.builder().token(BOT_TOKEN).build()
+        
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("balance", balance))
+        app.add_handler(CommandHandler("deposit", deposit))
+        app.add_handler(CommandHandler("withdraw", withdraw))
+        app.add_handler(CommandHandler("newgame", newgame))
+        app.add_handler(CommandHandler("buycards", buycards))
+        app.add_handler(CommandHandler("cards", cards))
+        app.add_handler(CommandHandler("call", call))
+        app.add_handler(CommandHandler("leaderboard", leaderboard))
+        app.add_handler(CommandHandler("history", history))
+        app.add_handler(CommandHandler("stats", stats))
+        app.add_handler(CommandHandler("summary", summary))
+        app.add_handler(CallbackQueryHandler(join_game, pattern='join'))
+        
+        print("🔴 ቢንጎ ቦት ተጀምሯል! 🎲")
+        print("✅ Bot is polling for updates...")
+        
+        app.run_polling()
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     main()
